@@ -1,21 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Entities.Models;
+using Microsoft.EntityFrameworkCore;
 using Repositories;
-using System;
 
 namespace TestProject
 {
     public class DatabaseFixture : IDisposable
     {
         public ApiShopContext Context { get; private set; }
+        private readonly string _databaseName;
 
-        
         public DatabaseFixture()
         {
-            var options = new DbContextOptionsBuilder<ApiShopContext>()
+            _databaseName = $"ApiShopTest_{Guid.NewGuid():N}";
 
-                .UseSqlServer("Data Source=Yocheved;Initial Catalog=ApiShopTest;Integrated Security=True;Pooling=False;TrustServerCertificate=True")
+            var options = new DbContextOptionsBuilder<ApiShopContext>()
+                .UseSqlServer($"Data Source=Yocheved;Initial Catalog={_databaseName};Integrated Security=True;Pooling=False;TrustServerCertificate=True")
                 .Options;
-            
+
             Context = new ApiShopContext(options);
             Context.Database.EnsureCreated();
         }

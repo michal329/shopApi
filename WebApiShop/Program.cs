@@ -4,6 +4,7 @@ using NLog.Web;
 using Repositories;
 using Services;
 using WebApiShop.MiddleWare;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,13 +23,15 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 
 builder.Host.UseNLog();
 
-// Bug 1 Fix: Read connection string from appsettings.json
 builder.Services.AddDbContext<ApiShopContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
-// CORS: allow Angular on both http and https
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowAngular", policy => {
         policy.WithOrigins(
@@ -54,12 +57,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Bug 4 Fix: correct middleware order
 app.UseCors("AllowAngular");
 app.UseErrorHandling();
 app.UseRating();
-
 app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();

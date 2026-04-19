@@ -1,5 +1,4 @@
-﻿using Entities;
-using Entities.Models;
+﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Repositories
@@ -42,6 +41,13 @@ namespace Repositories
             return (products, total);
         }
 
+        public async Task<IEnumerable<Product>> GetProducts()
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .ToListAsync();
+        }
+
         public async Task<Product> AddProduct(Product product)
         {
             product.IsActive = true;
@@ -75,14 +81,12 @@ namespace Repositories
 
             if (product == null) return false;
 
-            // Check if product is in any undelivered order
             bool hasUndeliveredOrders = product.OrderItems
                 .Any(oi => oi.Order != null && oi.Order.Status != "Delivered");
 
             if (hasUndeliveredOrders)
                 throw new InvalidOperationException("Cannot delete a product that is part of an undelivered order.");
 
-            // Soft delete — keeps history intact
             product.IsActive = false;
             await _context.SaveChangesAsync();
             return true;

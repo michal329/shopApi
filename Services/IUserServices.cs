@@ -1,13 +1,15 @@
-﻿using Entities;
-using DTOs;
+﻿using DTOs;
+
 namespace Services
 {
     public interface IUserServices
     {
         Task<UserDTO?> GetUserById(int id);
         Task<UserDTO?> Login(ExisitingUserDTO existingUser);
-        Task<UserDTO?> Register(UserDTO user);
-        Task<bool> Update(int id, UserDTO updateUser);
+        Task<UserDTO?> Register(PostUserDTO user);
+        Task<bool> Update(int id, PostUserDTO updateUser);
         Task<IEnumerable<UserDTO>> GetUsers();
+        Task<bool> UserWithSameEmail(string email, int id = -1);
+        bool IsPasswordStrong(string password);
     }
 }

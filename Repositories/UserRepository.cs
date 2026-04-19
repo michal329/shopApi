@@ -25,8 +25,6 @@ namespace Repositories
 
         public async Task<User?> Login(string email, string password)
         {
-            // Bug 6 Fix: fetch by email only, then verify password with BCrypt
-            // (can't compare hashed passwords directly in a SQL query)
             var user = await _context.Users
                 .Include(u => u.Orders)
                 .FirstOrDefaultAsync(u => u.Email == email);
@@ -40,9 +38,7 @@ namespace Repositories
 
         public async Task<User?> Register(User user)
         {
-            // Bug 6 Fix: hash the password before saving
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             return user;
@@ -52,18 +48,31 @@ namespace Repositories
         {
             var currentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id);
 
-            if (currentUser != null)
+            if (currentUser != null && updateUser.Password != currentUser.Password)
             {
-                updateUser.UserId = id;
-
-                if (updateUser.Password != currentUser.Password)
-                {
-                    updateUser.Password = BCrypt.Net.BCrypt.HashPassword(updateUser.Password);
-                }
+                updateUser.Password = BCrypt.Net.BCrypt.HashPassword(updateUser.Password);
             }
 
             _context.Users.Update(updateUser);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> UserWithSameEmail(string email, int id)
+        {
+            User? userWithSameEmail;
+
+            if (id < 0)
+            {
+                userWithSameEmail = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == email);
+            }
+            else
+            {
+                userWithSameEmail = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == email && u.UserId != id);
+            }
+
+            return userWithSameEmail == null;
         }
     }
 }

@@ -15,9 +15,19 @@ namespace WebApiShop.Controllers
             _IProductsServices = productsServices;
         }
 
-        // GET /api/Products
+        // GET /api/Products  — returns all products (no filters)
         [HttpGet]
-        public async Task<ActionResult<PageResponseDTO<ProductDTO>>> Get(
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> Get()
+        {
+            IEnumerable<ProductDTO> products = await _IProductsServices.GetProducts();
+            if (products != null && products.Any())
+                return Ok(products);
+            return NoContent();
+        }
+
+        // GET /api/Products/Filter  — returns paginated + filtered products
+        [HttpGet("Filter")]
+        public async Task<ActionResult<PageResponseDTO<ProductDTO>>> GetFiltered(
             int position, int skip,
             [FromQuery] int?[] categoryIds,
             string? description,
@@ -27,7 +37,7 @@ namespace WebApiShop.Controllers
             PageResponseDTO<ProductDTO> pageResponse = await _IProductsServices.GetProducts(
                 position, skip, categoryIds, description, maxPrice, minPrice);
 
-            if (pageResponse.Data.Count() > 0)
+            if (pageResponse.Data != null && pageResponse.Data.Count > 0)
                 return Ok(pageResponse);
             return NoContent();
         }
