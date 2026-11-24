@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
@@ -21,10 +22,7 @@ namespace TestProject
             var orderId = 10;
             var order = new Order { OrderId = orderId, OrderSum = 500, UserId = 1 };
       
-            var mockSet = new Mock<DbSet<Order>>();
-            mockSet.Setup(m => m.FindAsync(orderId))
-                   .Returns(new ValueTask<Order?>(order));
-            mockContext.Setup(x => x.Orders).Returns(mockSet.Object);
+            mockContext.Setup(x => x.Orders).ReturnsDbSet(new List<Order> { order });
 
             var repository = new OrdersRepository(mockContext.Object);
             var result = await repository.GetOrderById(orderId);

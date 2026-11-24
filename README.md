@@ -40,8 +40,12 @@ Error Handling: Global exception management implemented via custom ErrorHandling
 Validation: Strict adherence to REST principles.
 
 🧪 Testing & Quality Assurance
-Unit Testing: The system includes a comprehensive suite of unit tests.
+32 xUnit tests cover the repositories and services:
 
-Integration Testing: (Added for the missing term) Systematic tests to ensure all components work together seamlessly.
+Unit Testing: repositories and services tested with Moq and Moq.EntityFrameworkCore, without a database.
+
+Integration Testing: repositories tested against a real SQL Server database. Each test class creates its own throwaway database and deletes it afterwards.
+
+Running the tests: `dotnet test TestProject`. The integration tests use SQL Server LocalDB (`(localdb)\MSSQLLocalDB`, installed with Visual Studio) by default. To use another instance, set the `TEST_SQL_SERVER` environment variable, for example `.` or `localhost\SQLEXPRESS`.
 
 Tracing: Comprehensive logging of all transactions in the rating table to track system activity.

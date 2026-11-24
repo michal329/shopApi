@@ -13,8 +13,14 @@ namespace TestProject
         {
             _databaseName = $"ApiShopTest_{Guid.NewGuid():N}";
 
+            // Uses SQL Server LocalDB by default (installed with Visual Studio).
+            // Set TEST_SQL_SERVER to use another instance, e.g. "." or "localhost\SQLEXPRESS".
+            var server = Environment.GetEnvironmentVariable("TEST_SQL_SERVER");
+            if (string.IsNullOrWhiteSpace(server))
+                server = @"(localdb)\MSSQLLocalDB";
+
             var options = new DbContextOptionsBuilder<ApiShopContext>()
-                .UseSqlServer($"Data Source=Yocheved;Initial Catalog={_databaseName};Integrated Security=True;Pooling=False;TrustServerCertificate=True")
+                .UseSqlServer($"Data Source={server};Initial Catalog={_databaseName};Integrated Security=True;Pooling=False;TrustServerCertificate=True")
                 .Options;
 
             Context = new ApiShopContext(options);

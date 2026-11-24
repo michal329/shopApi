@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;

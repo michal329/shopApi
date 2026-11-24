@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
 using System;
@@ -43,20 +44,20 @@ namespace TestProject
             var orderToAdd = new Order
             {
                 OrderDate = DateOnly.FromDateTime(DateTime.Now),
-                OrderSum = 150.5,
-                UserId = user.Id 
+                OrderSum = 150.5m,
+                UserId = user.UserId 
             };
 
             var result = await _ordersRepository.AddOrder(orderToAdd);
 
             Assert.NotNull(result);
             Assert.True(result.OrderId > 0); 
-            Assert.Equal(150.5, result.OrderSum);
+            Assert.Equal(150.5m, result.OrderSum);
 
             _dbContext.ChangeTracker.Clear();
             var orderInDb = await _dbContext.Orders.FindAsync(result.OrderId);
             Assert.NotNull(orderInDb);
-            Assert.Equal(user.Id, orderInDb.UserId);
+            Assert.Equal(user.UserId, orderInDb.UserId);
         }
 
         [Fact]
@@ -74,7 +75,7 @@ namespace TestProject
             {
                 OrderDate = new DateOnly(2025, 1, 1),
                 OrderSum = 200,
-                UserId = user.Id
+                UserId = user.UserId
             };
             await _dbContext.Orders.AddAsync(order);
             await _dbContext.SaveChangesAsync();
@@ -83,7 +84,7 @@ namespace TestProject
             var result = await _ordersRepository.GetOrderById(order.OrderId);
             Assert.NotNull(result);
             Assert.Equal(200, result.OrderSum);
-            Assert.Equal(user.Id, result.UserId);
+            Assert.Equal(user.UserId, result.UserId);
         }
 
         [Fact]

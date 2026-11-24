@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
@@ -19,12 +20,12 @@ namespace TestProject
             var productsList = new List<Product>
     {
         
-        new Product { ProductId = 1, ProductName = "Smartphone", Description = "Smart Phone 5G", Price = 1000, CategoryId = 1 },
+        new Product { IsActive = true, ProductId = 1, ProductName = "Smartphone", Description = "Smart Phone 5G", Price = 1000, CategoryId = 1 },
         
         
-        new Product { ProductId = 2, ProductName = "Laptop", Description = "Gaming Laptop", Price = 5000, CategoryId = 1 },
+        new Product { IsActive = true, ProductId = 2, ProductName = "Laptop", Description = "Gaming Laptop", Price = 5000, CategoryId = 1 },
         
-        new Product { ProductId = 3, ProductName = "Screen", Description = "LCD Screen", Price = 500, CategoryId = 1 }
+        new Product { IsActive = true, ProductId = 3, ProductName = "Screen", Description = "LCD Screen", Price = 500, CategoryId = 1 }
     };
 
             mockContext.Setup(x => x.Products).ReturnsDbSet(productsList);
@@ -55,11 +56,11 @@ namespace TestProject
             
             var productsList = new List<Product>
     {
-        new Product { ProductId = 1, Price = 10 },
-        new Product { ProductId = 2, Price = 20 },
-        new Product { ProductId = 3, Price = 30 },
-        new Product { ProductId = 4, Price = 40 },
-        new Product { ProductId = 5, Price = 50 }
+        new Product { IsActive = true, ProductId = 1, Price = 10 },
+        new Product { IsActive = true, ProductId = 2, Price = 20 },
+        new Product { IsActive = true, ProductId = 3, Price = 30 },
+        new Product { IsActive = true, ProductId = 4, Price = 40 },
+        new Product { IsActive = true, ProductId = 5, Price = 50 }
     };
 
             mockContext.Setup(x => x.Products).ReturnsDbSet(productsList);
@@ -91,8 +92,8 @@ namespace TestProject
             
             var productsList = new List<Product>
     {
-        new Product { ProductId = 1, ProductName = "Gold Watch", Price = 5000, CategoryId = 1 },
-        new Product { ProductId = 2, ProductName = "Diamond Ring", Price = 10000, CategoryId = 1 }
+        new Product { IsActive = true, ProductId = 1, ProductName = "Gold Watch", Price = 5000, CategoryId = 1 },
+        new Product { IsActive = true, ProductId = 2, ProductName = "Diamond Ring", Price = 10000, CategoryId = 1 }
     };
 
             mockContext.Setup(x => x.Products).ReturnsDbSet(productsList);
