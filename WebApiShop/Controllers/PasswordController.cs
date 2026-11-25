@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApiShop.Controllers
 {
@@ -14,6 +15,7 @@ namespace WebApiShop.Controllers
         }
        
         [HttpPost("PasswordScore")]
+        [AllowAnonymous]
         public ActionResult<int> PasswordScore([FromBody] string password)
         {
             int strength = _passwordServices.PasswordScore(password);

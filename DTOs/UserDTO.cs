@@ -1,15 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DTOs
+﻿namespace DTOs
 {
+    // Returned to clients, so it never includes the password hash.
     public record UserDTO
     (
         int UserId,
         string Email,
         string FirstName,
         string LastName,
-        [Required]
-        string Password,
         bool IsAdmin,
         ICollection<OrderDTO> Orders
     );

@@ -1,0 +1,30 @@
+# Local infrastructure for the Shop API.
+#
+#   docker compose up -d       start Redis (Docker Desktop must be running)
+#   docker compose down        stop it
+#
+# The API itself runs on the host (dotnet run --project WebApiShop) and
+# connects to Redis on localhost:6379 with the password below.
+# REDIS_PASSWORD can be overridden in a .env file next to this file
+# (see .env.example). The default is for local development only and
+# must match ConnectionStrings:Redis in appsettings.Development.json.
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: shop-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-shop-dev-redis}"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD:-shop-dev-redis}\" --no-auth-warning ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-shop-dev-redis}
+    restart: unless-stopped
+
+volumes:
+  redis-data:

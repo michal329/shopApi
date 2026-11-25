@@ -48,9 +48,16 @@ namespace Repositories
         {
             var currentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id);
 
-            if (currentUser != null && updateUser.Password != currentUser.Password)
+            if (currentUser != null)
             {
-                updateUser.Password = BCrypt.Net.BCrypt.HashPassword(updateUser.Password);
+                if (updateUser.Password != currentUser.Password)
+                    updateUser.Password = BCrypt.Net.BCrypt.HashPassword(updateUser.Password);
+
+                // The update DTO doesn't carry these, so keep the stored values
+                // (otherwise an admin who edits their profile would lose admin).
+                updateUser.IsAdmin = currentUser.IsAdmin;
+                updateUser.Phone ??= currentUser.Phone;
+                updateUser.Address ??= currentUser.Address;
             }
 
             _context.Users.Update(updateUser);

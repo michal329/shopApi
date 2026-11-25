@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
 using DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using WebApiShop.Auth;
 
 namespace WebApiShop.Controllers
 {
+    // Every endpoint here needs a signed-in user (the app's default policy).
     [Route("api/[controller]")]
     [ApiController]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersServices _ordersServices;
-        private readonly IUserServices _userServices; // לבדיקת IsAdmin
+        private readonly IUserServices _userServices;
 
         public OrdersController(IOrdersServices ordersServices, IUserServices userServices)
         {
@@ -19,47 +19,50 @@ namespace WebApiShop.Controllers
             _userServices = userServices;
         }
 
+        // A customer can see their own orders; an admin can see any order.
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDTO>> Get(int id)
         {
             var order = await _ordersServices.GetOrderById(id);
-            if (order != null) return Ok(order);
-            return NotFound();
+            if (order == null) return NotFound();
+            if (!User.CanAccessUser(order.UserId)) return Forbid();
+            return Ok(order);
         }
 
         [HttpGet]
+        [AuthorizeRoles(Roles.Admin)]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetAll()
         {
-            // שליפת כל ההזמנות (לצורך תצוגת מנהל)
             var orders = await _ordersServices.GetAllOrders();
             return Ok(orders);
         }
 
+        // The order always belongs to the signed-in user, whatever UserId the body says.
         [HttpPost]
         public async Task<ActionResult<OrderDTO>> Post([FromBody] OrderDTO newOrder)
         {
-            // יצירת הזמנה חדשה
-            var createdOrder = await _ordersServices.AddOrder(newOrder);
+            var createdOrder = await _ordersServices.AddOrder(newOrder with { UserId = User.GetUserId() });
             if (createdOrder == null) return BadRequest();
             return CreatedAtAction(nameof(Get), new { id = createdOrder.OrderId }, createdOrder);
         }
 
+        // Admins move an order through its statuses; the customer confirms
+        // delivery (the rules are in OrdersServices.UpdateStatus). The user
+        // comes from the token, not from the request, so it can't be faked.
         [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status, [FromQuery] int userId)
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
         {
             try
             {
-               
-                var user = await _userServices.GetUserById(userId);
+                var user = await _userServices.GetUserById(User.GetUserId());
                 if (user == null) return Unauthorized();
 
-                // קריאה לסרביס - הוא זה שמנהל את ה"מותר" ו"אסור"
                 await _ordersServices.UpdateStatus(id, status, user);
                 return NoContent();
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
             }
             catch (InvalidOperationException ex)
             {

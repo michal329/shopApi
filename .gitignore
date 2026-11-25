@@ -365,3 +365,6 @@ FodyWeavers.xsd
 .cursor/
 .gemini/
 AGENTS.md
+
+# Local environment overrides (docker compose)
+.env
