@@ -188,5 +188,50 @@ namespace TestProject
             var result = await _userRepository.Login("exist@gmail.com", "WrongPassword!!!");
             Assert.Null(result);
         }
+
+        // Accounts created before BCrypt store the password as plain text.
+
+        private async Task<int> AddLegacyUser(string email, string plainPassword)
+        {
+            _dbContext.Orders.RemoveRange(_dbContext.Orders);
+            _dbContext.Users.RemoveRange(_dbContext.Users);
+            await _dbContext.SaveChangesAsync();
+
+            var legacy = new User { Email = email, Password = plainPassword, FirstName = "Old", LastName = "Account" };
+            await _dbContext.Users.AddAsync(legacy);
+            await _dbContext.SaveChangesAsync();
+            _dbContext.ChangeTracker.Clear();
+            return legacy.UserId;
+        }
+
+        [Fact]
+        public async Task Login_WithLegacyPlainTextPassword_SucceedsAndUpgradesToBCrypt()
+        {
+            int id = await AddLegacyUser("legacy@test.com", "OldPassword1");
+
+            var result = await _userRepository.Login("legacy@test.com", "OldPassword1");
+
+            Assert.NotNull(result);
+            _dbContext.ChangeTracker.Clear();
+            var stored = (await _dbContext.Users.FindAsync(id))!.Password;
+            Assert.NotEqual("OldPassword1", stored);
+            Assert.True(BCrypt.Net.BCrypt.Verify("OldPassword1", stored));
+
+            // And the next login goes through the normal BCrypt path.
+            _dbContext.ChangeTracker.Clear();
+            Assert.NotNull(await _userRepository.Login("legacy@test.com", "OldPassword1"));
+        }
+
+        [Fact]
+        public async Task Login_WithLegacyPlainTextPassword_AndWrongPassword_ReturnsNullAndChangesNothing()
+        {
+            int id = await AddLegacyUser("legacy2@test.com", "OldPassword1");
+
+            var result = await _userRepository.Login("legacy2@test.com", "WrongPassword");
+
+            Assert.Null(result);
+            _dbContext.ChangeTracker.Clear();
+            Assert.Equal("OldPassword1", (await _dbContext.Users.FindAsync(id))!.Password);
+        }
     }
 }

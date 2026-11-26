@@ -32,9 +32,28 @@ namespace Repositories
             if (user == null)
                 return null;
 
-            bool passwordMatch = BCrypt.Net.BCrypt.Verify(password, user.Password);
-            return passwordMatch ? user : null;
+            if (IsBCryptHash(user.Password))
+                return BCrypt.Net.BCrypt.Verify(password, user.Password) ? user : null;
+
+            // Accounts created before passwords were hashed still store the
+            // password as plain text (BCrypt.Verify would throw on it). Check
+            // it in constant time, and on a successful login replace it with a
+            // BCrypt hash, so these accounts are upgraded as their users log in.
+            if (!PlainTextEquals(password, user.Password))
+                return null;
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(password);
+            await _context.SaveChangesAsync();
+            return user;
         }
+
+        // A BCrypt hash looks like "$2a$11$" + 53 characters.
+        private static bool IsBCryptHash(string stored) =>
+            stored.Length == 60 && stored.StartsWith("$2") && stored[3] == '$';
+
+        private static bool PlainTextEquals(string given, string stored) =>
+            System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(given), System.Text.Encoding.UTF8.GetBytes(stored));
 
         public async Task<User?> Register(User user)
         {

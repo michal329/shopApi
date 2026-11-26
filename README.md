@@ -1,6 +1,6 @@
 ﻿# Shop API
 
-A REST API for an online shop, built with **ASP.NET Core (.NET 9)**, **Entity Framework Core** and **SQL Server**, using a layered Clean Architecture. It has **Redis caching** with invalidation, **JWT authentication in an HTTP-only cookie** with role-based authorization, **sliding-window rate limiting**, and **45 xUnit tests**.
+A REST API for an online shop, built with **ASP.NET Core (.NET 9)**, **Entity Framework Core** and **SQL Server**, using a layered Clean Architecture. It has **Redis caching** with invalidation, **JWT authentication in an HTTP-only cookie** with role-based authorization, **sliding-window rate limiting**, and **47 xUnit tests**.
 
 The Angular front end (catalog, cart and admin pages) that uses this API lives in a separate repository: [michal329/shop](https://github.com/michal329/shop).
 
@@ -65,7 +65,7 @@ GET shop:products:version        # the current product version
 | `GET /api/User`, `GET /api/Orders` | Admin |
 | `POST`, `PUT`, `DELETE /api/Products` | Admin |
 
-Passwords are hashed with **BCrypt** and checked for strength with **zxcvbn**.
+Passwords are hashed with **BCrypt** and checked for strength with **zxcvbn**. Accounts created before hashing was added still had plain-text passwords; they keep working, and each one is replaced with a BCrypt hash the first time its user logs in.
 
 ## Rate limiting
 
